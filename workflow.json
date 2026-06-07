@@ -1,0 +1,310 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        -16
+      ],
+      "id": "f7d796ad-2240-436c-be54-60a8ff87e2c6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        656,
+        -16
+      ],
+      "id": "7d8ee68a-5f08-4ad9-b0a8-501dfef5fb08",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "jsCode": "return Array.isArray($json.rss.channel.item) ? $json.rss.channel.item : [$json.rss.channel.item];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -16
+      ],
+      "id": "cab6b331-5ef2-416d-bc27-4c81f07f977a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an Elite Tech & Finance Career Scout. Analyze the following news article:\n\nTitle: {{ $json.title }}\nDescription: {{ $json.description }}\n\nDetermine if this article contains information relevant to a student targeting a career in: AI/ML, Finance, Management Consulting, or Data Analytics (including internships, market trends, or major tech breakthroughs).\n\nRespond with a raw, valid JSON object containing exactly two keys:\n{\n  \"score\": <integer from 1 to 10 evaluating career relevance>,\n  \"reason\": \"<a clear, 1-sentence explanation of your score>\"\n}\nDo not write anything else. Do not wrap the code in markdown formatting block tags.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1360,
+        448
+      ],
+      "id": "87bc3165-2635-410c-8450-d4b6c60cafac",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1136,
+        592
+      ],
+      "id": "4228e914-bf3b-4bd7-a89f-6211b761fb59",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "aTD8hYo2q5KUjXaE",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let aiText = $json.response.text;\n  \n  // Clean up code blocks if present\n  aiText = aiText.replace(/```json|```/g, '').trim();\n  \n  // Isolate the pure JSON boundaries if the AI included conversational chatter\n  const firstBracket = aiText.indexOf('{');\n  const lastBracket = aiText.lastIndexOf('}');\n  \n  if (firstBracket !== -1 && lastBracket !== -1) {\n    aiText = aiText.substring(firstBracket, lastBracket + 1);\n  }\n\n  const parsedAI = JSON.parse(aiText);\n\n  return {\n    title: $json.title,\n    link: $json.link,\n    description: $json.description,\n    score: Number(parsedAI.score || 0),\n    reason: parsedAI.reason || \"No reason provided.\"\n  };\n} catch (error) {\n  // Safe fallback if the specific payload run completely failed structural parsing\n  return {\n    title: $json.title,\n    link: $json.link,\n    description: $json.description,\n    score: 1,\n    reason: \"Failed parsing response format cleanly.\"\n  };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        464
+      ],
+      "id": "c9711ecc-507a-4f8d-be39-29b1c026f98c",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/1513125989671108670/7MdftCVyrpWlhXQItzQjAp-0KmZ9HeX0vhs0mvvEcT4br4Hh1jeYXUpypnD4Ncd6f9V_",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $json.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2352,
+        -48
+      ],
+      "id": "a8057ebc-07cc-48ec-ba82-58a609df9743",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        -16
+      ],
+      "id": "53512b54-ccc1-4f13-a805-ecc666aabcff",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "score"
+            }
+          ]
+        },
+        "options": {
+          "disableDotNotation": false
+        }
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1712,
+        224
+      ],
+      "id": "70c94b58-d0ed-4e13-ba8d-1a93c83b7671",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        368
+      ],
+      "id": "4ae6dca5-f7af-418c-bd80-392517ce5c69",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all incoming raw articles\nconst articles = $input.all();\n\n// Grab only the first 5 articles to respect Discord's length limits\nconst topArticles = articles.slice(0, 5);\n\nlet messageBody = \"📅 **YOUR DAILY RAW TECHCRUNCH BRIEF** 📅\\n\";\nmessageBody += \"=========================================\\n\\n\";\n\nfor (const item of topArticles) {\n  const data = item.json;\n  \n  const title = data.title || \"No Title Available\";\n  const link = data.link || \"#\";\n  // Grab just the first 120 characters of the description to save space\n  let desc = data.description || \"No description available.\";\n  desc = desc.replace(/<[^>]*>/g, '').trim(); // Strip HTML tags\n  if (desc.length > 120) desc = desc.substring(0, 120) + \"...\";\n\n  // Build the clean item block\n  messageBody += `📢 **${title}**\\n`;\n  messageBody += `📝 ${desc}\\n`;\n  messageBody += `🔗 ${link}\\n\\n`;\n  messageBody += \"-----------------------------------------\\n\\n\";\n}\n\n// Final safety check: if somehow it's still over 1900 chars, hard crop it\nif (messageBody.length > 1900) {\n  messageBody = messageBody.substring(0, 1850) + \"\\n\\n...[Truncated due to length limits]\";\n}\n\nreturn {\n  content: messageBody\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        -64
+      ],
+      "id": "57faac84-3380-45fa-af6e-70cba4bec223",
+      "name": "Code in JavaScript2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fdc970dd-cdf9-47c7-85da-9b7e217c53c3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a11c66532c6f748fe7b2b40c51aa28fc35de1502ceee2776d0733a9d0d6bd04"
+  },
+  "nodeGroups": [],
+  "id": "BExRQdPgcoqyIqnT",
+  "tags": []
+}
