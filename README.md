@@ -3,7 +3,7 @@ Autonomous Career Intelligence Agent: LLM Orchestration &amp; ETL Pipeline
 
 An enterprise-grade, agentic data pipeline designed to ingest, process, evaluate, and rank streaming industry indicators on a perpetual cron clock. The system combines strict rule-based backend formatting with real-time semantic LLM consensus logic to mitigate data noise and automate push notification delivery.
 
- 🛠️ System Architecture
+##  System Architecture
 
 1. **Extraction (Data Ingestion):** 
 A timed `Schedule Trigger` fires an asynchronous network socket request to harvest raw XML elements from streaming target publishers.
@@ -23,7 +23,7 @@ Streams pass to a sorting configuration that executes a numeric sorting sequence
 6. **Load (Syndication Relay):** 
 Sanitized data arrays collapse cleanly into an optimized Markdown buffer chunk and fire via an HTTP `POST` method over secure TLS network sockets to an external Discord webhook.
 
-## 🚀 Technical Highlights
+## Technical Highlights
 
 * **Structured LLM Enforcement:** 
 Programmed rigid prompt criteria to force standard JSON data generation directly out of probabilistic model completions.
@@ -34,7 +34,7 @@ Engineered defensive data-cleansing script logic to handle model format exceptio
 * **Stateless Cron Execution:** 
 Deployed an active background scheduler daemon to automate data processing cycles without requiring user-interface dependency or human intervention.
 
-## 📂 Deployment Configuration
+## Deployment Configuration
 1. Import `workflow.json` into your local `n8n` canvas interface.
 2. Authenticate your API key under the `Groq Chat Model` credential profile.
 3. Paste your unique platform communication token directly inside the destination HTTP Request parameter.
